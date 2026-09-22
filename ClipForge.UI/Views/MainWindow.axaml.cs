@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ClipForge.Core.Models;
@@ -56,13 +57,15 @@ public partial class MainWindow : Window
     private void BtnSaveClip_Click(object? sender, RoutedEventArgs e) { }
     private void BtnToggleCapture_Click(object? sender, RoutedEventArgs e) { }
 
-    private void ClipCard_DoubleTapped(object? sender, RoutedEventArgs e)
+    private void ClipCard_DoubleTapped(object? sender, TappedEventArgs e)
     {
         if (sender is Control c && c.DataContext is ClipItem clip)
         {
             var player = new PlayerWindow(clip.FilePath);
             player.Show(this);
         }
+
+        e.Handled = true;
     }
 
     private void TxtSearch_TextChanged(object? sender, TextChangedEventArgs e)
