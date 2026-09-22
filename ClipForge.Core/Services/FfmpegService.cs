@@ -84,7 +84,15 @@ public class FfmpegService
         {
             var ffmpeg = await GetFfmpegPathAsync();
             var ss = position.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
-            var args = $"-ss {ss} -i "{videoPath}" -vframes 1 -vf "scale=480:270:force_original_aspect_ratio=decrease,pad=480:270:(ow-iw)/2:(oh-ih)/2:black" -q:v 3 -y "{outputPath}"";
+            var args = new[]
+            {
+                "-ss", ss,
+                "-i", videoPath,
+                "-vframes", "1",
+                "-vf", "scale=480:270:force_original_aspect_ratio=decrease,pad=480:270:(ow-iw)/2:(oh-ih)/2:black",
+                "-q:v", "3",
+                "-y", outputPath
+            };
             var result = await RunProcessAsync(ffmpeg ?? "ffmpeg", args, ct);
             return result.Success && File.Exists(outputPath);
         }
@@ -101,7 +109,7 @@ public class FfmpegService
         try
         {
             var ffmpeg = await GetFfmpegPathAsync();
-            var result = await RunProcessAsync(ffmpeg ?? "ffmpeg", $"-i "{videoPath}"", ct, timeoutMs: 5000);
+            var result = await RunProcessAsync(ffmpeg ?? "ffmpeg", new[] { "-i", videoPath }, ct, timeoutMs: 5000);
             var output = result.Stderr;
 
             var matchDuration = Regex.Match(output, @"Duration:\s*(\d+):(\d+):(\d+\.?\d*)");
@@ -142,13 +150,21 @@ public class FfmpegService
             var sb = new StringBuilder();
             foreach (var seg in segmentFiles)
             {
-                var safePath = seg.Replace("\", "/").Replace("'", "'\''");
+                var safePath = seg.Replace('\\', '/').Replace("'", "'\\''");
                 sb.AppendLine($"file '{safePath}'");
             }
             await File.WriteAllTextAsync(listFile, sb.ToString(), ct);
 
             var ffmpeg = await GetFfmpegPathAsync();
-            var args = $"-f concat -safe 0 -i "{listFile}" -c copy -movflags +faststart -y "{outputPath}"";
+            var args = new[]
+            {
+                "-f", "concat",
+                "-safe", "0",
+                "-i", listFile,
+                "-c", "copy",
+                "-movflags", "+faststart",
+                "-y", outputPath
+            };
             var result = await RunProcessAsync(ffmpeg ?? "ffmpeg", args, ct, timeoutMs: 30000);
             return result.Success && File.Exists(outputPath);
         }
@@ -158,13 +174,28 @@ public class FfmpegService
         }
     }
 
-    public async Task<(bool Success, string Stdout, string Stderr)> RunProcessAsync(
+    public Task<(bool Success, string Stdout, string Stderr)> RunProcessAsync(
         string executable, string arguments, CancellationToken ct = default, int timeoutMs = 15000)
+    {
+        return RunProcessCoreAsync(executable, arguments, null, ct, timeoutMs);
+    }
+
+    public Task<(bool Success, string Stdout, string Stderr)> RunProcessAsync(
+        string executable, IEnumerable<string> arguments, CancellationToken ct = default, int timeoutMs = 15000)
+    {
+        return RunProcessCoreAsync(executable, null, arguments, ct, timeoutMs);
+    }
+
+    private async Task<(bool Success, string Stdout, string Stderr)> RunProcessCoreAsync(
+        string executable,
+        string? arguments,
+        IEnumerable<string>? argumentList,
+        CancellationToken ct,
+        int timeoutMs)
     {
         var psi = new ProcessStartInfo
         {
             FileName = executable,
-            Arguments = arguments,
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
@@ -173,6 +204,18 @@ public class FfmpegService
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
+
+        if (argumentList != null)
+        {
+            foreach (var argument in argumentList)
+            {
+                psi.ArgumentList.Add(argument);
+            }
+        }
+        else
+        {
+            psi.Arguments = arguments ?? string.Empty;
+        }
 
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();

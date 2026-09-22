@@ -65,10 +65,22 @@ public class ClipSaveService
             var res = settings.Resolution.Contains("x") ? settings.Resolution : "1920x1080";
             var fps = settings.Fps;
 
-            var synth = $"-f lavfi -i testsrc=size={res}:rate={fps} -f lavfi -i sine=frequency=1000:beep_factor=4 " +
-                        $"-t {dur} -c:v libx264 -preset fast -pix_fmt yuv420p -c:a aac -b:a 192k -y "{targetPath}"";
+            var synthArgs = new[]
+            {
+                "-f", "lavfi",
+                "-i", $"testsrc=size={res}:rate={fps}",
+                "-f", "lavfi",
+                "-i", "sine=frequency=1000:beep_factor=4",
+                "-t", dur.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-y", targetPath
+            };
 
-            var result = await _ffmpegService.RunProcessAsync(ffmpeg ?? "ffmpeg", synth, ct, timeoutMs: 20000);
+            var result = await _ffmpegService.RunProcessAsync(ffmpeg ?? "ffmpeg", synthArgs, ct, timeoutMs: 20000);
             if (result.Success && File.Exists(targetPath))
             {
                 ClipSaveCompleted?.Invoke(targetPath);
