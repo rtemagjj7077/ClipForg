@@ -10,35 +10,29 @@ public class ConcurrencyTests
     public async Task ConcurrentSettingsUpdates_DoNotCorruptSettingsFile()
     {
         var diag = new DiagnosticsService();
-        var tempFile = Path.Combine(Path.GetTempPath(), $"settings_concurrency_{Guid.NewGuid():N}.json");
-        try
-        {
-            var svc = new SettingsService(diag, tempFile);
-            var tasks = new List<Task>();
+        var svc = new SettingsService(diag);
+        var tasks = new List<Task>();
 
-            for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 20; i++)
+        {
+            var val = i;
+            tasks.Add(Task.Run(async () =>
             {
-                var val = i;
-                tasks.Add(Task.Run(async () =>
+                await svc.SaveSettingsAsync(new AppSettings
                 {
-                    await svc.SaveSettingsAsync(new AppSettings
-                    {
-                        ClipDurationSeconds = 10 + val,
-                        Fps = 30 + val
-                    });
-                }));
-            }
-
-            await Task.WhenAll(tasks);
-
-            var reloaded = new SettingsService(diag, tempFile);
-            Assert.NotNull(reloaded.Current);
-            Assert.True(reloaded.Current.ClipDurationSeconds >= 10);
+                    ClipDurationSeconds = 10 + val,
+                    Fps = 30 + val
+                });
+            }));
         }
-        finally
-        {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
-        }
+
+        await Task.WhenAll(tasks);
+
+        var reloaded = new SettingsService(diag);
+        Assert.NotNull(reloaded.Current);
+        Assert.InRange(reloaded.Current.ClipDurationSeconds, 10, 29);
+
+        await svc.ResetToDefaultsAsync();
     }
 
     [Fact]

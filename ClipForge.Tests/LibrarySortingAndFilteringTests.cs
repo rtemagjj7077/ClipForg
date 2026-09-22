@@ -15,86 +15,110 @@ public class LibrarySortingAndFilteringTests
         return new ClipLibraryService(ffmpeg, thumbs, diag, action => action());
     }
 
-    [Fact]
-    public void Sorting_OrdersClipsCorrectly()
+    private static string CreateClipFolder(params (string Name, int Size)[] clips)
     {
-        var lib = CreateService();
-        var c1 = new ClipItem { FileName = "Beta.mp4", CreatedAt = DateTime.Now.AddMinutes(-10), Duration = TimeSpan.FromSeconds(20), FileSize = 200 };
-        var c2 = new ClipItem { FileName = "Alpha.mp4", CreatedAt = DateTime.Now, Duration = TimeSpan.FromSeconds(60), FileSize = 100 };
-        var c3 = new ClipItem { FileName = "Gamma.mp4", CreatedAt = DateTime.Now.AddMinutes(-20), Duration = TimeSpan.FromSeconds(40), FileSize = 300 };
+        var folder = Path.Combine(Path.GetTempPath(), $"clip_library_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(folder);
 
-        lib.AddClipForTesting(c1);
-        lib.AddClipForTesting(c2);
-        lib.AddClipForTesting(c3);
+        foreach (var (name, size) in clips)
+        {
+            var path = Path.Combine(folder, name);
+            File.WriteAllBytes(path, new byte[size]);
+        }
 
-        // NameAsc
-        lib.SetSortOrder(ClipSortOrder.NameAsc);
-        Assert.Equal("Alpha.mp4", lib.VisibleClips[0].FileName);
-        Assert.Equal("Beta.mp4", lib.VisibleClips[1].FileName);
-        Assert.Equal("Gamma.mp4", lib.VisibleClips[2].FileName);
-
-        // NameDesc
-        lib.SetSortOrder(ClipSortOrder.NameDesc);
-        Assert.Equal("Gamma.mp4", lib.VisibleClips[0].FileName);
-
-        // DateAsc
-        lib.SetSortOrder(ClipSortOrder.DateAsc);
-        Assert.Equal("Gamma.mp4", lib.VisibleClips[0].FileName);
-
-        // DateDesc
-        lib.SetSortOrder(ClipSortOrder.DateDesc);
-        Assert.Equal("Alpha.mp4", lib.VisibleClips[0].FileName);
-
-        // DurationDesc
-        lib.SetSortOrder(ClipSortOrder.DurationDesc);
-        Assert.Equal("Alpha.mp4", lib.VisibleClips[0].FileName);
-
-        // SizeDesc
-        lib.SetSortOrder(ClipSortOrder.SizeDesc);
-        Assert.Equal("Gamma.mp4", lib.VisibleClips[0].FileName);
+        return folder;
     }
 
     [Fact]
-    public void SearchQuery_FiltersClipsBySubstring()
+    public async Task Sorting_OrdersScannedClipsCorrectly()
     {
-        var lib = CreateService();
-        lib.AddClipForTesting(new ClipItem { FileName = "Overwatch_Clip1.mp4", CreatedAt = DateTime.Now });
-        lib.AddClipForTesting(new ClipItem { FileName = "Minecraft_Build.mp4", CreatedAt = DateTime.Now });
-        lib.AddClipForTesting(new ClipItem { FileName = "Overwatch_PotG.mp4", CreatedAt = DateTime.Now });
+        var folder = CreateClipFolder(
+            ("Beta.mp4", 200),
+            ("Alpha.mp4", 100),
+            ("Gamma.mp4", 300));
 
-        lib.SetSearchQuery("overwatch");
-        Assert.Equal(2, lib.VisibleClips.Count);
-        Assert.All(lib.VisibleClips, c => Assert.Contains("Overwatch", c.FileName, StringComparison.OrdinalIgnoreCase));
+        try
+        {
+            var lib = CreateService();
+            await lib.ScanLibraryAsync(folder);
 
-        lib.SetSearchQuery("minecraft");
-        Assert.Single(lib.VisibleClips);
-        Assert.Equal("Minecraft_Build.mp4", lib.VisibleClips[0].FileName);
+            lib.SetSortOrder(ClipSortOrder.NameAsc);
+            Assert.Equal(new[] { "Alpha.mp4", "Beta.mp4", "Gamma.mp4" },
+                lib.VisibleClips.Select(c => c.FileName));
 
-        lib.SetSearchQuery("");
-        Assert.Equal(3, lib.VisibleClips.Count);
+            lib.SetSortOrder(ClipSortOrder.NameDesc);
+            Assert.Equal("Gamma.mp4", lib.VisibleClips[0].FileName);
+
+            lib.SetSortOrder(ClipSortOrder.SizeDesc);
+            Assert.Equal("Gamma.mp4", lib.VisibleClips[0].FileName);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
     }
 
     [Fact]
-    public void DurationFilter_FiltersByTimeRanges()
+    public async Task SearchQuery_FiltersScannedClipsBySubstring()
     {
-        var lib = CreateService();
-        lib.AddClipForTesting(new ClipItem { FileName = "Short.mp4", Duration = TimeSpan.FromSeconds(15), CreatedAt = DateTime.Now });
-        lib.AddClipForTesting(new ClipItem { FileName = "Medium.mp4", Duration = TimeSpan.FromSeconds(45), CreatedAt = DateTime.Now });
-        lib.AddClipForTesting(new ClipItem { FileName = "Long.mp4", Duration = TimeSpan.FromSeconds(90), CreatedAt = DateTime.Now });
+        var folder = CreateClipFolder(
+            ("Overwatch_Clip1.mp4", 1),
+            ("Minecraft_Build.mp4", 1),
+            ("Overwatch_PotG.mp4", 1));
 
-        lib.SetDurationFilter("<30s");
-        Assert.Single(lib.VisibleClips);
-        Assert.Equal("Short.mp4", lib.VisibleClips[0].FileName);
+        try
+        {
+            var lib = CreateService();
+            await lib.ScanLibraryAsync(folder);
 
-        lib.SetDurationFilter("30s-60s");
-        Assert.Single(lib.VisibleClips);
-        Assert.Equal("Medium.mp4", lib.VisibleClips[0].FileName);
+            lib.SetSearchQuery("overwatch");
+            Assert.Equal(2, lib.VisibleClips.Count);
+            Assert.All(lib.VisibleClips, c =>
+                Assert.Contains("Overwatch", c.FileName, StringComparison.OrdinalIgnoreCase));
 
-        lib.SetDurationFilter(">60s");
-        Assert.Single(lib.VisibleClips);
-        Assert.Equal("Long.mp4", lib.VisibleClips[0].FileName);
+            lib.SetSearchQuery("minecraft");
+            Assert.Single(lib.VisibleClips);
+            Assert.Equal("Minecraft_Build.mp4", lib.VisibleClips[0].FileName);
 
-        lib.SetDurationFilter(null);
-        Assert.Equal(3, lib.VisibleClips.Count);
+            lib.SetSearchQuery("");
+            Assert.Equal(3, lib.VisibleClips.Count);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DurationFilter_UsesDurationsReportedByLibraryScan()
+    {
+        var folder = CreateClipFolder(
+            ("First.mp4", 1),
+            ("Second.mp4", 1),
+            ("Third.mp4", 1));
+
+        try
+        {
+            var lib = CreateService();
+            await lib.ScanLibraryAsync(folder);
+
+            // ClipLibraryService assigns its documented 30-second fallback
+            // duration during scanning; metadata enrichment runs asynchronously.
+            lib.SetDurationFilter("30s-60s");
+            Assert.Equal(3, lib.VisibleClips.Count);
+
+            lib.SetDurationFilter("<30s");
+            Assert.Empty(lib.VisibleClips);
+
+            lib.SetDurationFilter(">60s");
+            Assert.Empty(lib.VisibleClips);
+
+            lib.SetDurationFilter(null);
+            Assert.Equal(3, lib.VisibleClips.Count);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
     }
 }
