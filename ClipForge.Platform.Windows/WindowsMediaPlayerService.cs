@@ -26,7 +26,7 @@ public class WindowsMediaPlayerService : IMediaPlayerService
             Process.Start(new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = $"/select,"{filePath}"",
+                Arguments = $"/select,\"{filePath}\"",
                 UseShellExecute = true
             });
         }

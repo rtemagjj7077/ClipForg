@@ -52,8 +52,8 @@ public class WindowsCaptureService : ICaptureService
             var res = settings.Resolution.Contains("x") ? settings.Resolution : "1920x1080";
 
             var args = $"-f gdigrab -framerate {settings.Fps} -i desktop -s {res} " +
-                       $"-c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p " +
-                       $"-f segment -segment_time 2 -segment_format mpegts -reset_timestamps 1 -y "{segmentPattern}"";
+                       "-c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p " +
+                       $"-f segment -segment_time 2 -segment_format mpegts -reset_timestamps 1 -y \"{segmentPattern}\"";
 
             var psi = new ProcessStartInfo
             {
