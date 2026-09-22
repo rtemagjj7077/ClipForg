@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ClipForge.UI.Views.PlayerWindow"
+        Title="ClipForge Player" Width="960" Height="600"
+        MinWidth="640" MinHeight="400"
+        Background="#101112"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="40,*,60">
+        <Grid Grid.Row="0" Background="#0C0D0F" ColumnDefinitions="Auto,*">
+            <TextBlock Text="ClipForge Player" FontWeight="SemiBold" FontSize="12" Foreground="#F1F1EF" VerticalAlignment="Center" Margin="14,0,0,0" />
+        </Grid>
+
+        <Grid Grid.Row="1" Background="#08090A">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <TextBlock Text="Ready for Playback" FontSize="16" Foreground="#F1F1EF" HorizontalAlignment="Center" />
+                <TextBlock x:Name="TxtFilePath" FontSize="12" Foreground="#8A8E94" HorizontalAlignment="Center" />
+                <Button Classes="primary" Content="Open with System Player" Click="BtnOpenSystem_Click" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#151719" BorderBrush="#292C31" BorderThickness="0,1,0,0" Padding="16,10">
+            <Grid ColumnDefinitions="*,Auto,*">
+                <Button Grid.Column="1" Classes="primary" Content="Play / Pause" Click="BtnPlayPause_Click" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

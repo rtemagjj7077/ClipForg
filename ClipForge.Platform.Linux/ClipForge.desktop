@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=ClipForge
+Comment=High Performance Game Clipping Application
+Exec=ClipForge
+Icon=ClipForge
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;Recorder;
+StartupWMClass=ClipForge

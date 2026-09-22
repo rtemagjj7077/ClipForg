@@ -1,0 +1,24 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <Color x:Key="Color.Background">#101112</Color>
+        <Color x:Key="Color.Sidebar">#0C0D0F</Color>
+        <Color x:Key="Color.Panel">#151719</Color>
+        <Color x:Key="Color.SecondaryPanel">#1B1D20</Color>
+        <Color x:Key="Color.Border">#292C31</Color>
+        <Color x:Key="Color.Text">#F1F1EF</Color>
+        <Color x:Key="Color.Muted">#8A8E94</Color>
+        <Color x:Key="Color.Accent">#E5B84A</Color>
+        <Color x:Key="Color.AccentHover">#F0C65D</Color>
+
+        <SolidColorBrush x:Key="Brush.Background" Color="{StaticResource Color.Background}" />
+        <SolidColorBrush x:Key="Brush.Sidebar" Color="{StaticResource Color.Sidebar}" />
+        <SolidColorBrush x:Key="Brush.Panel" Color="{StaticResource Color.Panel}" />
+        <SolidColorBrush x:Key="Brush.SecondaryPanel" Color="{StaticResource Color.SecondaryPanel}" />
+        <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource Color.Border}" />
+        <SolidColorBrush x:Key="Brush.Text" Color="{StaticResource Color.Text}" />
+        <SolidColorBrush x:Key="Brush.Muted" Color="{StaticResource Color.Muted}" />
+        <SolidColorBrush x:Key="Brush.Accent" Color="{StaticResource Color.Accent}" />
+        <SolidColorBrush x:Key="Brush.AccentHover" Color="{StaticResource Color.AccentHover}" />
+    </Styles.Resources>
+</Styles>

@@ -1,0 +1,248 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="clr-namespace:ClipForge.Core.Models;assembly=ClipForge.Core"
+        x:Class="ClipForge.UI.Views.MainWindow"
+        Title="ClipForge" Width="1180" Height="780"
+        MinWidth="900" MinHeight="600"
+        Background="#101112"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Grid RowDefinitions="40,*">
+        <!-- Custom Title Bar -->
+        <Grid Grid.Row="0" Background="#0C0D0F" ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <PathIcon Data="{StaticResource Icon.Clips}" Foreground="#E5B84A" Width="16" Height="16" />
+                <TextBlock Text="ClipForge" FontWeight="Bold" FontSize="13" Foreground="#F1F1EF" Margin="10,0,0,0" VerticalAlignment="Center" />
+                <Border Background="#332A15" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="PRO" FontSize="10" FontWeight="Bold" Foreground="#E5B84A" />
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Ellipse Width="7" Height="7" Fill="#8A8E94" Margin="0,0,8,0" />
+                <TextBlock x:Name="TxtTitleStatus" Text="Ready to Capture" FontSize="11" Foreground="#8A8E94" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Body: Sidebar + Pages -->
+        <Grid Grid.Row="1" ColumnDefinitions="210,*">
+            <!-- Sidebar Navigation -->
+            <Border Grid.Column="0" Background="#0C0D0F" BorderBrush="#292C31" BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <StackPanel Grid.Row="0" Margin="10,16,10,0" Spacing="4">
+                        <Button x:Name="BtnNavHome" Classes="ghost" HorizontalAlignment="Stretch" Click="NavHome_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <PathIcon Data="{StaticResource Icon.Home}" Width="16" Height="16" />
+                                <TextBlock Text="Home" FontSize="13" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button x:Name="BtnNavClips" Classes="ghost" HorizontalAlignment="Stretch" Click="NavClips_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <PathIcon Data="{StaticResource Icon.Clips}" Width="16" Height="16" />
+                                <TextBlock Text="Clips" FontSize="13" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button x:Name="BtnNavSettings" Classes="ghost" HorizontalAlignment="Stretch" Click="NavSettings_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <PathIcon Data="{StaticResource Icon.Settings}" Width="16" Height="16" />
+                                <TextBlock Text="Settings" FontSize="13" FontWeight="Medium" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Sidebar Footer -->
+                    <Border Grid.Row="2" Margin="12,0,12,16" Padding="12" Background="#1B1D20" CornerRadius="8" BorderBrush="#292C31" BorderThickness="1">
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <PathIcon Data="{StaticResource Icon.Hotkey}" Foreground="#E5B84A" Width="14" Height="14" />
+                                <TextBlock Text="Quick Save" FontSize="11" FontWeight="SemiBold" Foreground="#F1F1EF" />
+                            </StackPanel>
+                            <TextBlock Text="Press F8 during gameplay to save your replay." FontSize="10" Foreground="#8A8E94" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Page Container -->
+            <Grid Grid.Column="1">
+                <!-- ================= PAGE 1: HOME ================= -->
+                <Grid x:Name="PageHome" IsVisible="True" Margin="32,28" RowDefinitions="Auto,Auto,*">
+                    <StackPanel Grid.Row="0" Spacing="4">
+                        <TextBlock Text="ClipForge" FontSize="26" FontWeight="Bold" Foreground="#F1F1EF" />
+                        <TextBlock Text="Capture the moment." FontSize="13" Foreground="#8A8E94" />
+                    </StackPanel>
+
+                    <!-- Compact Capture Control Panel -->
+                    <Border Grid.Row="1" Background="#151719" BorderBrush="#292C31" BorderThickness="1" CornerRadius="10" Margin="0,24,0,28" Padding="24">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Background="#24281A" BorderBrush="#E5B84A" BorderThickness="1" CornerRadius="4" Padding="8,3">
+                                        <TextBlock x:Name="TxtCaptureState" Text="BUFFERING REPLAY" FontSize="10" FontWeight="Bold" Foreground="#E5B84A" />
+                                    </Border>
+                                    <Border Background="#1B1D20" CornerRadius="4" Padding="8,3">
+                                        <TextBlock Text="FPS: 60" FontSize="10" FontWeight="Bold" Foreground="#F1F1EF" />
+                                    </Border>
+                                    <Border Background="#1B1D20" CornerRadius="4" Padding="8,3">
+                                        <TextBlock Text="Buffer: 30s" FontSize="10" FontWeight="Bold" Foreground="#F1F1EF" />
+                                    </Border>
+                                </StackPanel>
+
+                                <TextBlock Text="Target: Active Game / Desktop Session" FontSize="14" FontWeight="SemiBold" Foreground="#F1F1EF" />
+                                <TextBlock Text="Rolling replay buffer is active in background. Press F8 or Save Clip to export highlights." FontSize="12" Foreground="#8A8E94" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <Button Classes="primary" Click="BtnSaveClip_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource Icon.Record}" Width="14" Height="14" />
+                                        <TextBlock Text="Save Clip (F8)" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="secondary" Click="BtnToggleCapture_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource Icon.Stop}" Width="14" Height="14" />
+                                        <TextBlock x:Name="TxtToggleCapture" Text="Stop Buffer" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Recent Clips -->
+                    <Grid Grid.Row="2" RowDefinitions="Auto,*">
+                        <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Recent Clips" FontSize="16" FontWeight="SemiBold" Foreground="#F1F1EF" />
+                            <Button Grid.Column="1" Classes="ghost" Click="BtnViewAllClips_Click">
+                                <TextBlock Text="View all →" FontSize="12" Foreground="#E5B84A" />
+                            </Button>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding RecentClips}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="4" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type m:ClipItem}">
+                                    <Border Classes="clipCard" Margin="0,0,12,0" Background="#151719" BorderBrush="#292C31" BorderThickness="1" CornerRadius="8" DoubleTapped="ClipCard_DoubleTapped">
+                                        <Grid RowDefinitions="120,Auto">
+                                            <Border Grid.Row="0" Background="#0C0D0F" CornerRadius="8,8,0,0" ClipToBounds="True">
+                                                <Grid>
+                                                    <Border Background="#D9000000" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="4" Padding="5,2" Margin="6">
+                                                        <TextBlock Text="{Binding DurationFormatted}" FontSize="10" FontWeight="SemiBold" Foreground="#FFF" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Padding="10,8">
+                                                <TextBlock Text="{Binding FileName}" FontSize="12" FontWeight="SemiBold" Foreground="#F1F1EF" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding TimestampFormatted}" FontSize="10" Foreground="#8A8E94" Margin="0,3,0,0" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Grid>
+
+                <!-- ================= PAGE 2: CLIPS (LIBRARY) ================= -->
+                <Grid x:Name="PageClips" IsVisible="False" Margin="28,20,28,16" RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Clips" FontSize="20" FontWeight="Bold" Foreground="#F1F1EF" />
+                            <TextBlock Text="Your library" FontSize="11" Foreground="#8A8E94" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBox x:Name="TxtSearch" Width="180" Watermark="Search clips..." TextChanged="TxtSearch_TextChanged" />
+                            <Button Classes="secondary" Content="3 Cols" Click="BtnCols3_Click" />
+                            <Button Classes="secondary" Content="4 Cols" Click="BtnCols4_Click" />
+                            <Button Classes="ghost" Click="BtnRefresh_Click">
+                                <PathIcon Data="{StaticResource Icon.Refresh}" Width="14" Height="14" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl x:Name="ClipsGridControl" ItemsSource="{Binding VisibleClips}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid x:Name="UniformGridClips" Columns="4" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type m:ClipItem}">
+                                    <Border Classes="clipCard" Margin="6" Background="#151719" BorderBrush="#292C31" BorderThickness="1" CornerRadius="8" DoubleTapped="ClipCard_DoubleTapped">
+                                        <Border.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Open in ClipForge" Click="MenuOpenClipForge_Click" />
+                                                <MenuItem Header="Open with System Player" Click="MenuOpenSystem_Click" />
+                                                <Separator />
+                                                <MenuItem Header="Rename" Click="MenuRename_Click" />
+                                                <MenuItem Header="Move to Archive" Click="MenuMove_Click" />
+                                                <MenuItem Header="Show in File Manager" Click="MenuShowInFolder_Click" />
+                                                <Separator />
+                                                <MenuItem Header="Delete" Click="MenuDelete_Click" Foreground="#FF6B6B" />
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
+                                        <Grid RowDefinitions="130,Auto">
+                                            <Border Grid.Row="0" Background="#0C0D0F" CornerRadius="8,8,0,0" ClipToBounds="True">
+                                                <Border Background="#E6000000" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="4" Padding="6,2" Margin="6">
+                                                    <TextBlock Text="{Binding DurationFormatted}" FontSize="10" FontWeight="Bold" Foreground="#FFF" />
+                                                </Border>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Margin="10,8">
+                                                <TextBlock Text="{Binding FileName}" FontSize="12" FontWeight="SemiBold" Foreground="#F1F1EF" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding TimestampFormatted}" FontSize="10" Foreground="#8A8E94" Margin="0,3,0,0" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- ================= PAGE 3: SETTINGS ================= -->
+                <Grid x:Name="PageSettings" IsVisible="False" Margin="32,24" RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock Text="Settings" FontSize="22" FontWeight="Bold" Foreground="#F1F1EF" />
+                        <TextBlock Text="Capture pipeline, framerates, audio, and storage." FontSize="12" Foreground="#8A8E94" />
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel Spacing="20" MaxWidth="760" HorizontalAlignment="Left">
+                            <Border Background="#151719" BorderBrush="#292C31" BorderThickness="1" CornerRadius="8" Padding="20">
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="Capture Framerate (FPS)" FontSize="13" FontWeight="SemiBold" Foreground="#F1F1EF" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="secondary" Content="30" Click="BtnFps_Click" Tag="30" />
+                                        <Button Classes="primary" Content="60" Click="BtnFps_Click" Tag="60" />
+                                        <Button Classes="secondary" Content="120" Click="BtnFps_Click" Tag="120" />
+                                        <Button Classes="secondary" Content="144" Click="BtnFps_Click" Tag="144" />
+                                        <Button Classes="secondary" Content="165" Click="BtnFps_Click" Tag="165" />
+                                        <Button Classes="secondary" Content="240" Click="BtnFps_Click" Tag="240" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="Replay Buffer Duration" FontSize="13" FontWeight="SemiBold" Foreground="#F1F1EF" Margin="0,10,0,0" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="secondary" Content="15s" Click="BtnDur_Click" Tag="15" />
+                                        <Button Classes="primary" Content="30s" Click="BtnDur_Click" Tag="30" />
+                                        <Button Classes="secondary" Content="45s" Click="BtnDur_Click" Tag="45" />
+                                        <Button Classes="secondary" Content="60s" Click="BtnDur_Click" Tag="60" />
+                                        <Button Classes="secondary" Content="120s" Click="BtnDur_Click" Tag="120" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
